@@ -1,0 +1,26 @@
+# Ignore Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore environment and config files
+.env
+.env.*
+
+# Ignore logs
+*.log
+logs/
+
+# Ignore test and development files
+*.pytest_cache/
+*.mypy_cache/
+*.coverage
+.coverage.*
+
+# Ignore git and editor files
+.git
+.gitignore
+*.swp
+*.swo
+.DS_Store 

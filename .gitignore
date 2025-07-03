@@ -1,0 +1,32 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdm.toml
+*.pdm.lock
+
+# Environment files
+.env
+.env.*
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Test and coverage
+*.pytest_cache/
+*.mypy_cache/
+*.coverage
+.coverage.*
+htmlcov/
+
+# Editors
+*.swp
+*.swo
+.vscode/
+.idea/

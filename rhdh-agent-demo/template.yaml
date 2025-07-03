@@ -1,0 +1,32 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: ai-agent-demo
+  title: AI Agent Weather Lookup Demo
+  description: Demonstrates invoking an AI Agent via HTTP and sending a notification.
+spec:
+  owner: user:guest
+  type: service
+  parameters:
+    - title: Weather Lookup
+      required:
+        - city
+      properties:
+        city:
+          title: City
+          type: string
+          description: City to look up the weather for
+  steps:
+    - id: invoke_agent
+      name: Invoke AI Agent
+      action: http:backstage:request
+      input:
+        method: 'POST'
+        path: '/proxy/agents/weather'
+        headers:
+          content-type: 'application/json'
+        body:
+          user: "${{ user.entity.metadata.name }}"
+          city: "${{ parameters.city }}"
+  output:
+    agentResult: "${{ steps.invoke_agent.output.body.message }}" 

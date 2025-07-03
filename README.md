@@ -23,8 +23,9 @@ This demo shows how to use a Red Hat Developer Hub (RHDH) Software Template to i
 3. **Run the container:**
    ```sh
    podman run -p 8000:8000 \
-     --env-file=.env
-     rhdh-agent-demo
+    --env-file=.env \
+    --name=agent \
+    rhdh-agent-demo
    ```
    The agent will be available at `http://localhost:8000/invoke`.
 
@@ -42,7 +43,10 @@ Example proxy configuration:
 proxy:
   reviveConsumedRequestBodies: true
   endpoints:
-    '/agents/weather': http://localhost:8000/invoke
+    '/agents/weather':
+      target: http://agent:8000/invoke
+      followRedirects: true
+      # ignorePath: true
 ```
 Then, in your template.yaml, use the proxied path:
 ```yaml
@@ -60,6 +64,14 @@ backend:
           subject: agent-notifications
 ```
 The value of `token` should match the value you set for `NOTIFICATIONS_BEARER_TOKEN` in your agent's environment.
+
+If testing locally with Red Hat Developer Hub Local (rhdh-local), you can have
+the agent connect to the rhdh-local network. Assuming the agent is running in a
+container named `agent` you can use the folllwing command:
+
+```bash
+podman network connect rhdh-local_default agent 
+```
 
 ## Notification Format and Testing
 

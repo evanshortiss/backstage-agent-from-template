@@ -26,7 +26,7 @@ spec:
         headers:
           content-type: 'application/json'
         body:
-          user: user:default/"${{ user.entity.metadata.name }}"
+          user: user:default/${{ user.entity.metadata.name }}
           city: "${{ parameters.city }}"
   output:
     text: 

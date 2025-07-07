@@ -20,6 +20,20 @@ logging.basicConfig(
 app = FastAPI()
 load_dotenv() 
 
+# Check required environment variables on startup
+NOTIFICATIONS_API_URL = os.environ.get("NOTIFICATIONS_API_URL")
+NOTIFICATIONS_BEARER_TOKEN = os.environ.get("NOTIFICATIONS_BEARER_TOKEN")
+WEATHER_API_KEY = os.environ.get("WEATHER_API_KEY")
+missing_vars = []
+if not NOTIFICATIONS_API_URL:
+    missing_vars.append("NOTIFICATIONS_API_URL")
+if not NOTIFICATIONS_BEARER_TOKEN:
+    missing_vars.append("NOTIFICATIONS_BEARER_TOKEN")
+if not WEATHER_API_KEY:
+    missing_vars.append("WEATHER_API_KEY")
+if missing_vars:
+    raise RuntimeError(f"Missing required environment variables: {', '.join(missing_vars)}")
+
 # Dummy weather lookup tool
 class WeatherTool(BaseTool):
     name: str = "weather"
@@ -29,9 +43,16 @@ class WeatherTool(BaseTool):
         raise NotImplementedError("Synchronous weather lookup is not supported. Use async.")
 
     async def _arun(self, city: str) -> str:
-        import asyncio
-        await asyncio.sleep(random.randint(5, 10))
-        return f"The weather in {city} is 72F and sunny."
+        import httpx
+        url = f"https://api.weatherapi.com/v1/current.json?key={WEATHER_API_KEY}&q={city}&aqi=no"
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.get(url, timeout=10)
+                resp.raise_for_status()
+                data = resp.json()
+                return data['current']
+            except Exception as e:
+                return f"Failed to fetch weather for {city}: {e}"
 
 weather_tool = WeatherTool()
 llm = OpenAI(temperature=0)
@@ -82,15 +103,9 @@ async def invoke_agent(req: AgentRequest, background_tasks: BackgroundTasks):
     background_tasks.add_task(process_and_notify, req.user, req.city)
     return {"message": ack_message}
 
-# Check notifications environment variables on startup
-NOTIFICATIONS_API_URL = os.environ.get("NOTIFICATIONS_API_URL")
-NOTIFICATIONS_BEARER_TOKEN = os.environ.get("NOTIFICATIONS_BEARER_TOKEN")
-if not NOTIFICATIONS_API_URL or not NOTIFICATIONS_BEARER_TOKEN:
-    raise RuntimeError("Both NOTIFICATIONS_API_URL and NOTIFICATIONS_BEARER_TOKEN environment variables must be set.")
-
 async def process_and_notify(user: str, city: str):
+    result = await agent.arun(f"Lookup weather in {city}, and respond with an entertaining summary of the current conditions.")
     logging.info(f"Sending notification to user: {user} for city: {city}")
-    result = await agent.arun(f"What is the weather in {city}?")
     payload = {
         "payload": {
             "title": f"Weather for {city}",

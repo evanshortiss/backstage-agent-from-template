@@ -3,4 +3,5 @@ fastapi
 uvicorn
 openai
 langchain-community
-python-dotenv 
+python-dotenv
+langchain-openai 

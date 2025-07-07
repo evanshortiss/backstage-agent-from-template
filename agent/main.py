@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import random
 
 from langchain.agents import initialize_agent, Tool
-from langchain_community.llms import OpenAI
+from langchain_openai import OpenAI
 from langchain.tools import BaseTool
 
 app = FastAPI()

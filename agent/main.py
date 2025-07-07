@@ -1,10 +1,11 @@
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 from typing import Any, Dict
+from httpx import URL
 import os
 import httpx
 from dotenv import load_dotenv
-import random
+import re
 import logging
 
 from langchain.agents import initialize_agent, Tool
@@ -33,6 +34,21 @@ if not WEATHER_API_KEY:
     missing_vars.append("WEATHER_API_KEY")
 if missing_vars:
     raise RuntimeError(f"Missing required environment variables: {', '.join(missing_vars)}")
+
+class RedactAPIKeyFilter(logging.Filter):
+    API_KEY_PATTERN = re.compile(r'([?&]key=)[^&]+', re.IGNORECASE)
+
+    def filter(self, record):
+        if hasattr(record, 'args') and len(record.args) >= 2:
+            method, url, *rest = record.args
+
+            if isinstance(url, URL):
+                redacted_url_str = self.API_KEY_PATTERN.sub(r'\1<REDACTED>', str(url))
+                record.args = (method, URL(redacted_url_str), *rest)
+
+        return True
+
+logging.getLogger("httpx").addFilter(RedactAPIKeyFilter())
 
 # Dummy weather lookup tool
 class WeatherTool(BaseTool):
@@ -105,7 +121,7 @@ async def invoke_agent(req: AgentRequest, background_tasks: BackgroundTasks):
 
 async def process_and_notify(user: str, city: str):
     result = await agent.arun(f"Lookup weather in {city}, and respond with an entertaining summary of the current conditions.")
-    logging.info(f"Sending notification to user: {user} for city: {city}")
+    logging.info(f"Sending notification to {user} for {city}")
     payload = {
         "payload": {
             "title": f"Weather for {city}",

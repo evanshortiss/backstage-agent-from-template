@@ -29,4 +29,6 @@ spec:
           user: user:default/"${{ user.entity.metadata.name }}"
           city: "${{ parameters.city }}"
   output:
-    agentResult: "${{ steps.invoke_agent.output.body.message }}" 
+    text: 
+      - title: Agent Response
+        content: "${{ steps.invoke_agent.output.body.message }}" 

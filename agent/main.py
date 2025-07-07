@@ -5,10 +5,17 @@ import os
 import httpx
 from dotenv import load_dotenv
 import random
+import logging
 
 from langchain.agents import initialize_agent, Tool
 from langchain_openai import OpenAI
 from langchain.tools import BaseTool
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s %(asctime)s %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
 
 app = FastAPI()
 load_dotenv() 
@@ -59,7 +66,7 @@ async def invoke_agent(req: AgentRequest, background_tasks: BackgroundTasks):
         """
     )
     is_city = llm.invoke(city_check_prompt).strip().lower()
-    print(f"Is city: {is_city}")
+
     if is_city == 'no':
         return {"message": "Please try again with a valid city name."}
     
@@ -82,6 +89,7 @@ if not NOTIFICATIONS_API_URL or not NOTIFICATIONS_BEARER_TOKEN:
     raise RuntimeError("Both NOTIFICATIONS_API_URL and NOTIFICATIONS_BEARER_TOKEN environment variables must be set.")
 
 async def process_and_notify(user: str, city: str):
+    logging.info(f"Sending notification to user: {user} for city: {city}")
     result = await agent.arun(f"What is the weather in {city}?")
     payload = {
         "payload": {
@@ -101,5 +109,5 @@ async def process_and_notify(user: str, city: str):
         try:
             await client.post(NOTIFICATIONS_API_URL, json=payload, headers=headers)
         except Exception as e:
-            print(f"Failed to send notification: {e}")
+            logging.error(f"Failed to send notification: {e}")
 

@@ -1,12 +1,13 @@
 # AI Agent Demo for Red Hat Developer Hub
 
-This demo shows how to use a Red Hat Developer Hub (RHDH) Software Template to invoke an AI Agent via HTTP, passing user context, and returning a result.
+This demo shows how to use a Red Hat Developer Hub (RHDH) Software Template to invoke an AI Agent via HTTP. The Agent returns a synchronous reponse acknowledging the request, and later responds with the actual result using the [Backstage Notifications API](https://backstage.io/docs/notifications/).
 
 ## Contents
-- `agent/`: Python FastAPI server with a Langchain agent (weather lookup example)
+- `agent/`: Python FastAPI server with a Langchain agent (https://weatherapi.com lookup example)
 - `Dockerfile`: Container build for the agent
 - `requirements.txt`: Python dependencies
 - `template.yaml`: RHDH Software Template using `http:backstage:request`
+- `.env.example`: Sample environment variables
 
 ## Running the Agent Locally
 
@@ -15,6 +16,7 @@ This demo shows how to use a Red Hat Developer Hub (RHDH) Software Template to i
    OPENAI_API_KEY=sk-your-key-here
    NOTIFICATIONS_API_URL=http://localhost:7007/api/notifications
    NOTIFICATIONS_BEARER_TOKEN=your-notification-token
+   WEATHER_API_KEY=replaceme
    ```
 2. **Build the container:**
    ```sh
@@ -30,7 +32,7 @@ This demo shows how to use a Red Hat Developer Hub (RHDH) Software Template to i
    The agent will be available at `http://localhost:8000/invoke`.
 
 **Note:**
-To send notifications, your Red Hat Developer Hub (RHDH) or Backstage backend must be configured with a static token for external access. See the [Configuring Red Hat Developer Hub](#configuring-red-hat-developer-hub) section below for details.
+For the agent to send notifications, your Red Hat Developer Hub (RHDH) or Backstage backend must be configured with a static token for external access. See the [Configuring Red Hat Developer Hub](#configuring-red-hat-developer-hub) section below for details.
 
 ## Configuring Red Hat Developer Hub
 
@@ -45,10 +47,11 @@ proxy:
   endpoints:
     '/agents/weather':
       target: http://agent:8000/invoke
+      # Backstage proxy appends a trailing slash to requests, and FastAPI
+      # redirects trailing slashes, e.g /invoke/ => /invoke
       followRedirects: true
-      # ignorePath: true
 ```
-Then, in your template.yaml, use the proxied path:
+Then, in the _template.yaml_, use the proxied path:
 ```yaml
 path: 'proxy/agents/weather'
 ```
@@ -65,7 +68,7 @@ backend:
 ```
 The value of `token` should match the value you set for `NOTIFICATIONS_BEARER_TOKEN` in your agent's environment.
 
-If testing locally with Red Hat Developer Hub Local (rhdh-local), you can have
+If testing locally with [Red Hat Developer Hub Local (rhdh-local)](https://github.com/redhat-developer/rhdh-local), you can have
 the agent connect to the rhdh-local network. Assuming the agent is running in a
 container named `agent` you can use the folllwing command:
 
@@ -102,7 +105,7 @@ curl -X POST 'http://localhost:7007/api/notifications' \
         },
         "recipients": {
           "type": "entity",
-          "entityRef": "user:default/guest"
+          "entityRef": "user:default/valid-username"
         }
       }' \
   -v

@@ -11,7 +11,7 @@ This demo shows how to use a Red Hat Developer Hub (RHDH) Software Template to i
 
 ## Running the Agent Locally
 
-1. **Create a `.env` file** in `rhdh-agent-demo/` with valid values, e.g:
+1. **Create a `.env` file** in the root of the repo with valid values, e.g:
    ```sh
    OPENAI_API_KEY=sk-your-key-here
    NOTIFICATIONS_API_URL=http://localhost:7007/api/notifications

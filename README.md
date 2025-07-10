@@ -1,4 +1,4 @@
-# AI Agent Demo for Red Hat Developer Hub
+# Calling AI Agents from Backstage Templates
 
 This demo shows how to use a Red Hat Developer Hub (RHDH) Software Template to invoke an AI Agent via HTTP. The Agent returns a synchronous reponse acknowledging the request, and later responds with the actual result using the [Backstage Notifications API](https://backstage.io/docs/notifications/).
 
